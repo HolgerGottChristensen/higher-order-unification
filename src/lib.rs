@@ -1,3 +1,6 @@
+mod datatype;
+mod substs;
+mod simpl;
 
 
 #[test]
