@@ -20,8 +20,6 @@ fn main_huet(context: &mut Context, problem: Problem) {
 
     let mut p_simpl = p_simpl.unwrap();
 
-    println!("p_simpl: {:#?}", p_simpl);
-
     if p_simpl.is_empty() {
         context.solutions.borrow_mut().push(context.substitutions.clone());
         return;
@@ -45,8 +43,7 @@ fn main_huet(context: &mut Context, problem: Problem) {
             substitutions: substs_for_context,
             solutions: context.solutions.clone(),
         };
-        println!("new_context substitutions: {:#?}", new_context.substitutions);
-        println!("new_problem: {:#?}", new_problem);
+
         main_huet(&mut new_context, new_problem);
     }
 }
@@ -60,6 +57,40 @@ mod tests {
     use crate::main_huet;
 
     #[test]
+    /// Testing I u32 =? option u32
+    fn example_1() {
+        // Arrange
+        let constraint = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            )
+        };
+
+        let mut context = Context {
+            typing_context: HashMap::from_iter([
+                ("u32".to_string(), Type::Star),
+                ("option".to_string(), Type::Arrow(
+                    Box::new(Type::Star),
+                    Box::new(Type::Star)
+                ))
+            ]),
+            substitutions: vec![],
+            solutions: Rc::new(RefCell::new(vec![])),
+        };
+        // Act
+        main_huet(&mut context, vec![constraint]);
+
+        // Assert
+        println!("Context: {:#?}", context);
+    }
+
+    #[test]
+    /// Testing I u32 =? option (option u32)
     fn example_2() {
         // Arrange
         let constraint = Constraint {
@@ -82,6 +113,270 @@ mod tests {
                 ("option".to_string(), Type::Arrow(
                     Box::new(Type::Star),
                     Box::new(Type::Star)
+                ))
+            ]),
+            substitutions: vec![],
+            solutions: Rc::new(RefCell::new(vec![])),
+        };
+        // Act
+        main_huet(&mut context, vec![constraint]);
+
+        // Assert
+        println!("Context: {:#?}", context);
+    }
+
+    #[test]
+    /// Testing I (I u32) =? option (option u32)
+    fn example_3() {
+        // Arrange
+        let constraint = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(
+                    Term::App(
+                        Box::new(Term::Meta("I".to_string())),
+                        Box::new(Term::Var("u32".to_string()))
+                    )
+                )
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::App(
+                    Box::new(Term::Var("option".to_string())),
+                    Box::new(Term::Var("u32".to_string()))
+                ))
+            )
+        };
+
+        let mut context = Context {
+            typing_context: HashMap::from_iter([
+                ("u32".to_string(), Type::Star),
+                ("option".to_string(), Type::Arrow(
+                    Box::new(Type::Star),
+                    Box::new(Type::Star)
+                ))
+            ]),
+            substitutions: vec![],
+            solutions: Rc::new(RefCell::new(vec![])),
+        };
+        // Act
+        main_huet(&mut context, vec![constraint]);
+
+        // Assert
+        println!("Context: {:#?}", context);
+    }
+
+    #[test]
+    /// Testing I (L u32) =? option (option u32)
+    fn example_4() {
+        // Arrange
+        let constraint = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(
+                    Term::App(
+                        Box::new(Term::Meta("L".to_string())),
+                        Box::new(Term::Var("u32".to_string()))
+                    )
+                )
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::App(
+                    Box::new(Term::Var("option".to_string())),
+                    Box::new(Term::Var("u32".to_string()))
+                ))
+            )
+        };
+
+        let mut context = Context {
+            typing_context: HashMap::from_iter([
+                ("u32".to_string(), Type::Star),
+                ("option".to_string(), Type::Arrow(
+                    Box::new(Type::Star),
+                    Box::new(Type::Star)
+                ))
+            ]),
+            substitutions: vec![],
+            solutions: Rc::new(RefCell::new(vec![])),
+        };
+        // Act
+        main_huet(&mut context, vec![constraint]);
+
+        // Assert
+        println!("Number of solutions: {:#?}", context.solutions.borrow_mut().len());
+        println!("Context: {:#?}", context);
+    }
+
+    #[test]
+    /// Testing I u32 =? option u32 and
+    /// I String =? option String
+    fn example_5() {
+        // Arrange
+        let constraint_1 = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            )
+        };
+
+        let constraint_2 = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(Term::Var("String".to_string()))
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::Var("String".to_string()))
+            )
+        };
+
+        let mut context = Context {
+            typing_context: HashMap::from_iter([
+                ("u32".to_string(), Type::Star),
+                ("String".to_string(), Type::Star),
+                ("option".to_string(), Type::Arrow(
+                    Box::new(Type::Star),
+                    Box::new(Type::Star)
+                ))
+            ]),
+            substitutions: vec![],
+            solutions: Rc::new(RefCell::new(vec![])),
+        };
+        // Act
+        main_huet(&mut context, vec![constraint_1, constraint_2]);
+
+        // Assert
+        println!("Context: {:#?}", context);
+    }
+
+    #[test]
+    /// Testing I u32 =? option u32 and
+    /// I String =? option u32
+    fn example_6() {
+        // Arrange
+        let constraint_1 = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            )
+        };
+
+        let constraint_2 = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(Term::Var("String".to_string()))
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            )
+        };
+
+        let mut context = Context {
+            typing_context: HashMap::from_iter([
+                ("u32".to_string(), Type::Star),
+                ("String".to_string(), Type::Star),
+                ("option".to_string(), Type::Arrow(
+                    Box::new(Type::Star),
+                    Box::new(Type::Star)
+                ))
+            ]),
+            substitutions: vec![],
+            solutions: Rc::new(RefCell::new(vec![])),
+        };
+        // Act
+        main_huet(&mut context, vec![constraint_1, constraint_2]);
+
+        // Assert
+        println!("Context: {:#?}", context);
+    }
+
+    #[test]
+    /// Testing I u32 =? option u32 and
+    /// I String =? option bool
+    /// This case should fail as there should not be any solutions.
+    fn example_7() {
+        // Arrange
+        let constraint_1 = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            )
+        };
+
+        let constraint_2 = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(Term::Var("String".to_string()))
+            ),
+            right: Term::App(
+                Box::new(Term::Var("option".to_string())),
+                Box::new(Term::Var("bool".to_string()))
+            )
+        };
+
+        let mut context = Context {
+            typing_context: HashMap::from_iter([
+                ("u32".to_string(), Type::Star),
+                ("String".to_string(), Type::Star),
+                ("bool".to_string(), Type::Star),
+                ("option".to_string(), Type::Arrow(
+                    Box::new(Type::Star),
+                    Box::new(Type::Star)
+                ))
+            ]),
+            substitutions: vec![],
+            solutions: Rc::new(RefCell::new(vec![])),
+        };
+        // Act
+        main_huet(&mut context, vec![constraint_1, constraint_2]);
+
+        // Assert
+        println!("Context: {:#?}", context);
+        assert_eq!(true, context.solutions.borrow_mut().is_empty());
+    }
+
+    #[test]
+    /// Testing I u32 =? result u32 String
+    fn example_8() {
+        // Arrange
+        let constraint = Constraint {
+            left: Term::App(
+                Box::new(Term::Meta("I".to_string())),
+                Box::new(Term::Var("u32".to_string()))
+            ),
+            right: Term::App(
+                Box::new(Term::App(
+                    Box::new(Term::Var("result".to_string())),
+                    Box::new(Term::Var("u32".to_string()))
+                )),
+                Box::new(Term::Var("String".to_string()))
+            )
+        };
+
+        let mut context = Context {
+            typing_context: HashMap::from_iter([
+                ("u32".to_string(), Type::Star),
+                ("String".to_string(), Type::Star),
+                ("result".to_string(), Type::Arrow(
+                    Box::new(Type::Star),
+                    Box::new(Type::Arrow(
+                        Box::new(Type::Star),
+                        Box::new(Type::Star)
+                    ))
                 ))
             ]),
             substitutions: vec![],
