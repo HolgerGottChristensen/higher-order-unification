@@ -20,8 +20,8 @@ fn simplify_constraint(context: Context, constraint: Constraint) -> Option<Vec<C
     let (r_lambda, r_head, r_tail) = constraint.right.split();
 
     if l_head.equal_in_context(&r_head, &context.typing_context) ||
-        l_head.binding_index(l_lambda).and_then(|u| {
-            r_head.binding_index(r_lambda).map(|u1| u1 == u)
+        l_head.binding_index(&l_lambda).and_then(|u| {
+            r_head.binding_index(&r_lambda).map(|u1| u1 == u)
         }).unwrap_or(false) {
         let mut builder = vec![];
 
