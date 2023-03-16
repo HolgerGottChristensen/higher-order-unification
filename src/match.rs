@@ -7,7 +7,7 @@ pub fn match_(context: Context, constraint: Constraint) -> Vec<Substitution> {
     res
 }
 
-pub fn imitation(context: &Context, constraint: &Constraint) -> Substitution {
+pub fn imitation(_context: &Context, constraint: &Constraint) -> Substitution {
     let (_, x, l_tail) = constraint.left.split();
     let (_, h, r_tail) = constraint.right.split();
 
@@ -43,7 +43,7 @@ fn construct_imitation_function(x_argument_count: usize, h_argument_count: usize
     builder
 }
 
-pub fn projection(context: &Context, constraint: &Constraint) -> Vec<Substitution> {
+pub fn projection(_context: &Context, constraint: &Constraint) -> Vec<Substitution> {
     let (_, x, l_head) = constraint.left.split();
     let x_argument_count = l_head.len();
 

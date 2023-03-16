@@ -3,8 +3,8 @@ use crate::datatype::{Constraint, Problem, Substitution, Term};
 pub fn term_substitution(term: Term, sub: Substitution) -> Term {
     match term {
         Term::Meta(s) | Term::Var(s) if s == sub.name => sub.with,
-        Term::Abs(s, T1, t1) =>
-            Term::Abs(s, T1, Box::new(term_substitution(*t1, sub))),
+        Term::Abs(s, typ, t1) =>
+            Term::Abs(s, typ, Box::new(term_substitution(*t1, sub))),
         Term::App(t1, t2) => {
             let app_term = Term::App(
                 Box::new(term_substitution(*t1, sub.clone())),
@@ -16,11 +16,11 @@ pub fn term_substitution(term: Term, sub: Substitution) -> Term {
     }
 }
 
-fn beta_reduce(term: Term) -> Term {
+pub fn beta_reduce(term: Term) -> Term {
     match term {
         Term::App(t1, t2) => {
             match *t1 {
-                Term::Abs(s, T, t11) =>
+                Term::Abs(s, _, t11) =>
                     term_substitution(*t11, Substitution { name: s, with: *t2 }),
                 _ => Term::App(t1, t2)
             }
@@ -38,9 +38,9 @@ pub fn constraint_substitution(constraint: Constraint, sub: Substitution) -> Con
 }
 
 pub fn problem_substitution(problem: Problem, sub: Substitution) -> Problem {
-    problem.into_iter()
+    Problem(problem.0.into_iter()
         .map(|constraint| constraint_substitution(constraint, sub.clone()))
-        .collect()
+        .collect())
 }
 
 

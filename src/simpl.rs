@@ -1,7 +1,7 @@
 use crate::datatype::{Constraint, Context, Problem};
 
 pub fn simpl(context: Context, problem: Problem) -> Option<Problem> {
-    let mut queue = problem.clone();
+    let mut queue = problem.0.clone();
     let mut simplified = vec![];
 
     while let Some(constraint) = queue.pop() {
@@ -12,7 +12,7 @@ pub fn simpl(context: Context, problem: Problem) -> Option<Problem> {
         }
     }
 
-    Some(simplified)
+    Some(Problem(simplified))
 }
 
 fn simplify_constraint(context: Context, constraint: Constraint) -> Option<Vec<Constraint>> {

@@ -1,0 +1,59 @@
+use crate::datatype::*;
+
+grammar;
+
+pub Problem: Problem = List<Constraint, "∧"> =>  Problem(<>);
+
+pub Constraint: Constraint = {
+    <left:Term> "=?" <right:Term> => Constraint { left, right }
+}
+
+// Derives any term
+pub Term: Term = {
+    TTerm,
+    Abs,
+}
+
+// Derives only terms that do not contains abs, except possibly inside parenthesis
+TTerm: Term = {
+    FTerm,
+    App
+}
+
+// Derives only terms that do not contains abs and app, except possibly inside parenthesis
+FTerm: Term = {
+    Meta,
+    Var,
+    "(" <Term> ")"
+}
+
+Meta: Term = {
+    <r"[A-Z]+"> => Term::Meta(<>.to_string())
+}
+
+Var: Term = {
+    <r"[a-z][a-z_0-9]*"> => Term::Var(<>.to_string())
+}
+
+Abs: Term = {
+    "λ" <s:r"[a-z][a-z_0-9]*"> ":" <t:Type> r"\.?" <te:Term> => Term::Abs(s.to_string(), t, Box::new(te)),
+};
+
+App: Term = {
+    <t1:TTerm> <t2:FTerm> => Term::App(Box::new(t1), Box::new(t2))
+};
+
+pub Type: Type = {
+    "*" => Type::Star,
+    "* -> " <Type> => Type::Arrow(Box::new(Type::Star), Box::new(<>))
+}
+
+List<T, Seperator>: Vec<T> = {
+    <mut v:(<T> Seperator)*> <e:T?> => match e {
+        None => v,
+        Some(e) => {
+            v.push(e);
+            v
+        }
+    }
+};

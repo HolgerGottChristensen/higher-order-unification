@@ -1,9 +1,13 @@
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::fmt::{Debug};
 use std::rc::Rc;
+use std::str::FromStr;
 use std::string::ToString;
 use std::sync::atomic::{AtomicU32, Ordering};
-use crate::substs::term_substitution;
+use crate::datatype::Term::{Abs, App, Var};
+use crate::datatype::Type::Star;
+use crate::substs::{beta_reduce, term_substitution};
 
 const PLACEHOLDER: &'static str = "placeholder";
 
@@ -25,7 +29,8 @@ pub enum Type {
 pub struct Context {
     pub typing_context: HashMap<String, Type>,
     pub substitutions: Vec<Substitution>,
-    pub solutions: Rc<RefCell<Vec<Solution>>>
+    pub solutions: Rc<RefCell<Vec<Solution>>>,
+    pub name_map: HashMap<String, Vec<String>>,
 }
 
 #[derive(Clone, PartialEq, Debug)]
@@ -40,8 +45,15 @@ pub struct Substitution {
     pub with: Term
 }
 
-pub type Problem = Vec<Constraint>;
-pub type Solution = Vec<Substitution>;
+#[derive(Clone, PartialEq, Debug)]
+pub struct Problem(pub Vec<Constraint>);
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct Solution(pub Vec<Substitution>);
+
+#[derive(Clone, PartialEq, Debug)]
+pub struct SolutionSet(pub Vec<Solution>);
+
 
 impl Term {
     pub fn is_rigid(&self) -> bool {
@@ -106,7 +118,7 @@ impl Term {
         let mut current = bindings;
         let mut depth = 0;
         let mut last_seen_index = None;
-        while let Term::Abs(s, _, term) = bindings {
+        while let Term::Abs(s, _, term) = current {
             current = term;
             if s == &self.get_name() {
                 last_seen_index = Some(depth);
@@ -131,11 +143,46 @@ pub fn generate_fresh_var() -> String {
     format!("{:?}", COUNTER.fetch_add(1, Ordering::Relaxed))
 }
 
+impl Solution {
+    pub fn minimize(self, name_map: &HashMap<String, Vec<String>>) -> Solution {
+        let mut originals =
+            self.0.iter()
+                .filter(|substitution| u32::from_str(&substitution.name).is_err())
+                .cloned()
+                .collect::<Vec<_>>();
 
+        for sub in self.0 {
+            for original in &mut originals {
+                original.with = term_substitution(original.with.clone(), sub.clone())
+            }
+        }
 
-mod tests {
+        for original in &mut originals {
+            if let Some(list) = name_map.get(&original.name) {
+                let mut builder = original.with.clone();
+                for element in list {
+                    builder = beta_reduce(App(Box::new(builder), Box::new(Var(element.to_string()))))
+                }
 
+                for element in list.iter().rev() {
+                    builder = Abs(element.to_string(), Star, Box::new(builder))
+                }
+
+                original.with = builder;
+            }
+        }
+
+        Solution(originals)
+    }
 }
+
+impl Context {
+    pub fn minimal_solutions(&self) -> SolutionSet {
+        SolutionSet(self.solutions.borrow().iter().cloned().map(|solution| solution.minimize(&self.name_map)).collect())
+    }
+}
+
+
 
 #[test]
 fn test_split() {
