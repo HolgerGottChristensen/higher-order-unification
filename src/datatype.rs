@@ -1,4 +1,6 @@
+use std::cell::RefCell;
 use std::collections::HashMap;
+use std::rc::Rc;
 use std::string::ToString;
 use std::sync::atomic::{AtomicU32, Ordering};
 use crate::substs::term_substitution;
@@ -23,7 +25,7 @@ pub enum Type {
 pub struct Context {
     pub typing_context: HashMap<String, Type>,
     pub substitutions: Vec<Substitution>,
-    pub solutions: Vec<Solution>
+    pub solutions: Rc<RefCell<Vec<Solution>>>
 }
 
 #[derive(Clone, PartialEq, Debug)]
