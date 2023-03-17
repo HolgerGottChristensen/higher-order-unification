@@ -1,3 +1,5 @@
+// http://www.cs.ecu.edu/karl/5220/spr16/Notes/CFG/precedence.html
+// http://lalrpop.github.io/lalrpop/index.html
 use crate::datatype::*;
 
 grammar;
