@@ -176,6 +176,22 @@ mod tests {
         run("P u32 u32 =? result u32 u32 ∧ T u32 u32 =? result u32 u32 ");
     }
 
+
+    #[test]
+    fn example_17() {
+        run("P u32 u32 =? option u32 ∧ P bool bool =? option bool");
+    }
+
+    #[test]
+    fn example_18() {
+        run("P bool string =? result bool string ∧ P string bool =? result string bool");
+    }
+
+    #[test]
+    fn example_19() {
+        run("I u32 =? result u32 string ∧ I string =? result string string");
+    }
+
     #[test]
     fn parse_and_print() {
         println!("{}   ", parse_term("λx:*. λy:*. N"));
