@@ -80,8 +80,11 @@ mod tests {
                 ("u32".to_string(), parse_type("*")),
                 ("bool".to_string(), parse_type("*")),
                 ("string".to_string(), parse_type("*")),
+                ("unit".to_string(), parse_type("*")),
                 ("result".to_string(), parse_type("* -> * -> *")),
                 ("option".to_string(), parse_type("* -> *")),
+                ("fn2".to_string(), parse_type("* -> * -> * -> *")),
+                ("fn3".to_string(), parse_type("* -> * -> * -> * -> *")),
             ]),
             substitutions: vec![],
             solutions: Rc::new(RefCell::new(vec![])),
@@ -190,6 +193,21 @@ mod tests {
     #[test]
     fn example_19() {
         run("I u32 =? result u32 string ∧ I string =? result string string");
+    }
+
+    #[test]
+    fn example_20() {
+        run("I u32 u32 =? u32 ∧ L u32 =? u32 ∧ fn2 (I u32 u32) (L u32) unit =? fn2 u32 u32 unit");
+    }
+
+    #[test]
+    fn example_21() {
+        run("I u32 u32 =? u32 ∧ L u32 =? u32 ∧ fn3 (I u32 u32) (L u32) bool unit =? fn3 u32 u32 A unit");
+    }
+
+    #[test]
+    fn example_22() {
+        run("bool =? A");
     }
 
     #[test]
