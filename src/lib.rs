@@ -211,6 +211,11 @@ mod tests {
     }
 
     #[test]
+    fn example_23() {
+        run("P u32 u32 =? result u32 u32 ∧ T u32 u32 =? result u32 u32 ∧ P bool bool =? result bool bool ∧ T bool bool =? result bool bool");
+    }
+
+    #[test]
     fn parse_and_print() {
         println!("{}   ", parse_term("λx:*. λy:*. N"));
         println!("{:#?}", parse_term("λx:*. λy:*. N"));
