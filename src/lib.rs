@@ -12,6 +12,7 @@ mod simpl;
 mod r#match;
 mod parse;
 mod print;
+mod util;
 
 fn main_huet(context: &mut Context, problem: Problem) {
     let p_simpl = simpl(context.clone(), problem);
@@ -54,6 +55,7 @@ mod tests {
     use std::rc::Rc;
     use crate::datatype::{Context, SolutionSet};
     use crate::main_huet;
+    use crate::util;
     use crate::parse::{parse_constraint, parse_problem, parse_term, parse_type};
 
     fn run(input: &str) -> SolutionSet {
@@ -235,5 +237,16 @@ mod tests {
         println!("{:#?}", parse_constraint("I u32 =? option (option u32)"));
         println!("{}   ", parse_problem("I u32 =? option u32 ∧ I string =? option bool"));
         println!("{:#?}", parse_problem("I u32 =? option u32 ∧ I string =? option bool"));
+    }
+
+    #[test]
+    fn swap_count_for_simple_lists() {
+        let list1 = vec![4,3,2,1];
+        let list2 = vec![2,4,5,1,3];
+        let res1 = util::amount_of_swaps_to_sort(list1);
+        let res2 = util::amount_of_swaps_to_sort(list2);
+        assert_eq!(res1, 2);
+        assert_eq!(res2, 3);
+
     }
 }
