@@ -14,7 +14,11 @@ pub fn get_solution_from_solution_set(solutions: SolutionSet) -> Result<Solution
     }
 }
 
-fn existence(mut solutions: SolutionSet) -> SolutionSet {
+pub fn get_solution_from_solution_set_by_priority(solutions: SolutionSet, f: fn(SolutionSet) -> SolutionSet) -> SolutionSet {
+    f(solutions)
+}
+
+pub fn existence(mut solutions: SolutionSet) -> SolutionSet {
     solutions.0.sort_by(|a, b| b.0.len().cmp(&a.0.len()));
     let mut new_list = Vec::new();
     if let Some(first) = solutions.0.first() {
@@ -29,7 +33,7 @@ fn existence(mut solutions: SolutionSet) -> SolutionSet {
     SolutionSet(new_list)
 }
 
-fn generality(mut solutions: SolutionSet) -> SolutionSet {
+pub fn generality(mut solutions: SolutionSet) -> SolutionSet {
     solutions.0.sort_by(|a, b| {
         a.number_of_constants().cmp(&b.number_of_constants())
     });
@@ -48,7 +52,7 @@ fn generality(mut solutions: SolutionSet) -> SolutionSet {
     SolutionSet(new_list)
 }
 
-fn exhaustiveness(mut solutions: SolutionSet) -> SolutionSet {
+pub fn exhaustiveness(mut solutions: SolutionSet) -> SolutionSet {
     solutions.0.sort_by(|a, b| {
         b.number_of_unique_params().cmp(&a.number_of_unique_params())
     });
@@ -67,7 +71,7 @@ fn exhaustiveness(mut solutions: SolutionSet) -> SolutionSet {
     SolutionSet(new_list)
 }
 
-fn ordering(mut solutions: SolutionSet) -> SolutionSet {
+pub fn ordering(mut solutions: SolutionSet) -> SolutionSet {
     solutions.0.sort_by(|a, b| {
         // FIXMIG : what to we sort by?
         a.number_of_swaps().cmp(&b.number_of_swaps())
@@ -87,7 +91,7 @@ fn ordering(mut solutions: SolutionSet) -> SolutionSet {
     SolutionSet(new_list)
 }
 
-fn simplicity(mut solutions: SolutionSet) -> SolutionSet {
+pub fn simplicity(mut solutions: SolutionSet) -> SolutionSet {
     solutions.0.sort_by(|a, b| {
         // FIXMIG : what to we sort by?
         a.number_of_params().cmp(&b.number_of_params())
