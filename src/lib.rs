@@ -13,6 +13,7 @@ mod r#match;
 mod parse;
 mod print;
 mod util;
+mod prioritization;
 
 fn main_huet(context: &mut Context, problem: Problem) {
     let p_simpl = simpl(context.clone(), problem);
@@ -21,7 +22,7 @@ fn main_huet(context: &mut Context, problem: Problem) {
         return
     }
 
-    let mut p_simpl = p_simpl.unwrap();
+    let p_simpl = p_simpl.unwrap();
 
     if p_simpl.0.is_empty() {
         context.solutions.borrow_mut().push(Solution(context.substitutions.clone()));
