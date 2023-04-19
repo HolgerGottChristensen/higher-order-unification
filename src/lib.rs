@@ -54,7 +54,7 @@ mod tests {
     use std::cell::RefCell;
     use std::collections::HashMap;
     use std::rc::Rc;
-    use crate::datatype::{Context, Solution, SolutionSet};
+    use crate::datatype::{Context, SolutionSet};
     use crate::main_huet;
     use crate::util;
     use crate::parse::{parse_constraint, parse_problem, parse_term, parse_type};
@@ -441,17 +441,17 @@ mod tests {
 
     #[test]
     fn example_priority_simplicity_1() {
-        run_with_priority_simplicity("P u32 u32 =? result u32 u32 ∧ P bool bool =? result bool bool");
+        run_with_priority_simplicity("P (option u32) =? option (option u32)");
     }
 
     #[test]
     fn example_priority_simplicity_2() {
-        run_with_priority_simplicity("P u32 bool =? result u32 bool ∧ P bool bool =? result bool bool");
+        run_with_priority_simplicity("P (result u32 bool) =? result u32 bool");
     }
 
     #[test]
     fn example_priority_simplicity_3() {
-        run_with_priority_simplicity("I u32 bool =? fn3 u32 bool bool");
+        run_with_priority_simplicity("P (result u32 u32) u32 =? result u32 u32");
     }
 
     #[test]
