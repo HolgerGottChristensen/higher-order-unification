@@ -14,8 +14,12 @@ pub fn get_solution_from_solution_set(solutions: SolutionSet) -> Result<Solution
     }
 }
 
-pub fn get_solution_from_solution_set_by_priority(solutions: SolutionSet, f: fn(SolutionSet) -> SolutionSet) -> SolutionSet {
-    f(solutions)
+pub fn get_solution_from_solution_set_by_priorities(solutions: SolutionSet, fs: &[fn(SolutionSet) -> SolutionSet]) -> SolutionSet {
+    let mut sol = solutions;
+    for &f in fs {
+        sol = f(sol);
+    }
+    sol
 }
 
 pub fn existence(mut solutions: SolutionSet) -> SolutionSet {
