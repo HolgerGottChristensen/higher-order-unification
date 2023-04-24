@@ -274,6 +274,31 @@ impl Solution {
         Solution(originals)
     }
 
+    pub fn name_map(self, name_map: &HashMap<String, Vec<String>>) -> Solution {
+        let mut originals =
+            self.0.iter()
+                .filter(|substitution| u32::from_str(&substitution.name).is_err())
+                .cloned()
+                .collect::<Vec<_>>();
+
+        for original in &mut originals {
+            if let Some(list) = name_map.get(&original.name) {
+                let mut builder = original.with.clone();
+                for element in list {
+                    builder = beta_reduce(App(Box::new(builder), Box::new(Var(element.to_string()))))
+                }
+
+                for element in list.iter().rev() {
+                    builder = Abs(element.to_string(), Star, Box::new(builder))
+                }
+
+                original.with = builder;
+            }
+        }
+
+        Solution(originals)
+    }
+
     pub fn number_of_constants(&self) -> usize {
         self.0.iter().map(|a| a.number_of_constants()).sum()
     }
@@ -313,6 +338,10 @@ impl Substitution {
 impl Context {
     pub fn minimal_solutions(&self) -> SolutionSet {
         SolutionSet(self.solutions.borrow().iter().cloned().map(|solution| solution.minimize(&self.name_map)).collect())
+    }
+
+    pub fn minimal_solutions_without_name_map(&self) -> SolutionSet {
+        SolutionSet(self.solutions.borrow().iter().cloned().map(|solution| solution.minimize(&HashMap::new())).collect())
     }
 }
 

@@ -84,7 +84,7 @@ mod tests {
         // Arrange
         let problem = parse_problem(input);
 
-        let mut context = generate_context_without_name_map();
+        let mut context = generate_context();
 
         // Act
         main_huet(&mut context, problem.clone());
@@ -93,12 +93,13 @@ mod tests {
         println!("Problem: {}", problem);
         println!();
         println!("Number of solutions: {:#?}", context.solutions.borrow().len());
-        let minimal = context.minimal_solutions();
-        println!("Non-filtered solutions: {}", minimal);
+        let minimal = context.minimal_solutions_without_name_map();
+        let minimal_with_names = context.minimal_solutions();
+        println!("Non-filtered solutions: {}", minimal_with_names);
         let filtered = get_solution_from_solution_set(minimal.clone());
         match filtered.clone() {
-            Ok(solution) => println!("Filtered solutions: {}", solution),
-            Err(solutions) => println!("Filtered solutions {}", solutions)
+            Ok(solution) => println!("Filtered solutions: {}", solution.name_map(&context.name_map)),
+            Err(solutions) => println!("Filtered solutions {}", SolutionSet(solutions.0.iter().cloned().map(|s| s.name_map(&context.name_map)).collect()))
         }
     }
 
@@ -110,7 +111,7 @@ mod tests {
         // Arrange
         let problem = parse_problem(input);
 
-        let mut context = generate_context_without_name_map();
+        let mut context = generate_context();
 
         // Act
         main_huet(&mut context, problem.clone());
@@ -119,11 +120,12 @@ mod tests {
         println!("Problem: {}", problem);
         println!();
         println!("Number of solutions: {:#?}", context.solutions.borrow().len());
-        let minimal = context.minimal_solutions();
-        println!("Non-filtered solutions: {}", minimal);
+        let minimal = context.minimal_solutions_without_name_map();
+        let minimal_with_names = context.minimal_solutions();
+        println!("Non-filtered solutions: {}", minimal_with_names);
         let filtered = get_solution_from_solution_set_by_priorities(minimal.clone(), filters);
         println!("Number of filtered solutions: {:#?}", filtered.0.len());
-        println!("Filtered solutions: {}", filtered);
+        println!("Filtered solutions: {}", SolutionSet(filtered.0.iter().cloned().map(|s| s.name_map(&context.name_map)).collect()));
 
         filtered
     }
@@ -143,29 +145,13 @@ mod tests {
             substitutions: vec![],
             solutions: Rc::new(RefCell::new(vec![])),
             name_map: HashMap::from_iter([
+                ("F".to_string(), vec!["k".to_string()]),
                 ("I".to_string(), vec!["j".to_string()]),
                 ("L".to_string(), vec!["m".to_string()]),
                 ("P".to_string(), vec!["q".to_string(), "r".to_string()]),
                 ("T".to_string(), vec!["u".to_string(), "v".to_string()]),
+                ("S".to_string(), vec!["x".to_string(), "y".to_string(), "z".to_string()]),
             ]),
-        }
-    }
-
-    fn generate_context_without_name_map() -> Context {
-        Context {
-            typing_context: HashMap::from_iter([
-                ("u32".to_string(), parse_type("*")),
-                ("bool".to_string(), parse_type("*")),
-                ("string".to_string(), parse_type("*")),
-                ("unit".to_string(), parse_type("*")),
-                ("result".to_string(), parse_type("* -> * -> *")),
-                ("option".to_string(), parse_type("* -> *")),
-                ("fn2".to_string(), parse_type("* -> * -> * -> *")),
-                ("fn3".to_string(), parse_type("* -> * -> * -> * -> *")),
-            ]),
-            substitutions: vec![],
-            solutions: Rc::new(RefCell::new(vec![])),
-            name_map: HashMap::new(),
         }
     }
 
@@ -269,12 +255,12 @@ mod tests {
 
     #[test]
     fn example_20() {
-        run("I u32 u32 =? u32 ∧ L u32 =? u32 ∧ fn2 (I u32 u32) (L u32) unit =? fn2 u32 u32 unit");
+        run("P u32 u32 =? u32 ∧ L u32 =? u32 ∧ fn2 (P u32 u32) (L u32) unit =? fn2 u32 u32 unit");
     }
 
     #[test]
     fn example_21() {
-        run("I u32 u32 =? u32 ∧ L u32 =? u32 ∧ fn3 (I u32 u32) (L u32) bool unit =? fn3 u32 u32 A unit");
+        run("P u32 u32 =? u32 ∧ L u32 =? u32 ∧ fn3 (P u32 u32) (L u32) bool unit =? fn3 u32 u32 A unit");
     }
 
     #[test]
@@ -294,47 +280,47 @@ mod tests {
 
     #[test]
     fn example_priority_existence_2() {
-        run_with_priority("I (L (P u32)) =? option (option u32)", existence);
+        run_with_priority("I (L (F u32)) =? option (option u32)", existence);
     }
 
     #[test]
     fn example_priority_existence_3() {
-        run_with_priority("I (L u32) (P u32) =? result (option u32) (option u32)", existence);
+        run_with_priority("I (L u32) (F u32) =? result (option u32) (option u32)", existence);
     }
 
     #[test]
     fn example_priority_generality_1() {
-        run_with_priority("I u32 bool =? result u32 bool", generality);
+        run_with_priority("P u32 bool =? result u32 bool", generality);
     }
 
     #[test]
     fn example_priority_generality_2() {
-        run_with_priority("I u32 =? result u32 bool ∧ P u32 =? result u32 bool", generality);
+        run_with_priority("I u32 =? result u32 bool ∧ F u32 =? result u32 bool", generality);
     }
 
     #[test]
     fn example_priority_generality_3() {
-        run_with_priority("I u32 bool =? fn3 u32 bool bool", generality);
+        run_with_priority("P u32 bool =? fn3 u32 bool bool", generality);
     }
 
     #[test]
     fn example_priority_generality_4() {
-        run_with_priority("I u32 u32 =? result u32 u32", generality);
+        run_with_priority("P u32 u32 =? result u32 u32", generality);
     }
 
     #[test]
     fn example_priority_exhaustiveness_1() {
-        run_with_priority("I u32 bool =? option (result u32 bool)", exhaustiveness);
+        run_with_priority("P u32 bool =? option (result u32 bool)", exhaustiveness);
     }
 
     #[test]
     fn example_priority_exhaustiveness_2() {
-        run_with_priority("I u32 bool =? option (result u32 bool) ∧ P u32 =? result u32 bool", exhaustiveness);
+        run_with_priority("T u32 bool =? option (result u32 bool) ∧ P u32 =? result u32 bool", exhaustiveness);
     }
 
     #[test]
     fn example_priority_exhaustiveness_3() {
-        run_with_priority("I u32 u32 =? result u32 u32 ∧ P u32 bool =? result u32 bool", exhaustiveness);
+        run_with_priority("T u32 u32 =? result u32 u32 ∧ P u32 bool =? result u32 bool", exhaustiveness);
     }
 
     #[test]
@@ -350,22 +336,22 @@ mod tests {
 
     #[test]
     fn example_priority_ordering_3() {
-        run_with_priority("I u32 u32 u32 =? fn3 u32 u32 u32", ordering);
+        run_with_priority("S u32 u32 u32 =? fn3 u32 u32 u32", ordering);
     }
 
     #[test]
     fn example_priority_ordering_4() {
-        run_with_priority("I u32 bool string =? result (fn2 u32 string) bool", ordering);
+        run_with_priority("S u32 bool string =? result (fn2 u32 string) bool", ordering);
     }
 
     #[test]
     fn example_priority_simplicity_1() {
-        run_with_priority("P (option u32) =? option (option u32)", simplicity);
+        run_with_priority("I (option u32) =? option (option u32)", simplicity);
     }
 
     #[test]
     fn example_priority_simplicity_2() {
-        run_with_priority("P (result u32 bool) =? result u32 bool", simplicity);
+        run_with_priority("I (result u32 bool) =? result u32 bool", simplicity);
     }
 
     #[test]
@@ -385,42 +371,42 @@ mod tests {
 
     #[test]
     fn example_priority_2() {
-        run_with_all_priorities("I (L (P u32)) =? option (option u32)");
+        run_with_all_priorities("I (L (F u32)) =? option (option u32)");
     }
 
     #[test]
     fn example_priority_3() {
-        run_with_all_priorities("I (L u32) (P u32) =? result (option u32) (option u32)");
+        run_with_all_priorities("I (L u32) (F u32) =? result (option u32) (option u32)");
     }
 
     #[test]
     fn example_priority_4() {
-        run_with_all_priorities("I u32 bool =? result u32 bool");
+        run_with_all_priorities("P u32 bool =? result u32 bool");
     }
 
     #[test]
     fn example_priority_5() {
-        run_with_all_priorities("I u32 =? result u32 bool ∧ P u32 =? result u32 bool");
+        run_with_all_priorities("I u32 =? result u32 bool ∧ L u32 =? result u32 bool");
     }
 
     #[test]
     fn example_priority_6() {
-        run_with_all_priorities("I u32 bool =? fn3 u32 bool bool");
+        run_with_all_priorities("P u32 bool =? fn3 u32 bool bool");
     }
 
     #[test]
     fn example_priority_7() {
-        run_with_all_priorities("I u32 bool =? option (result u32 bool)");
+        run_with_all_priorities("P u32 bool =? option (result u32 bool)");
     }
 
     #[test]
     fn example_priority_8() {
-        run_with_all_priorities("I u32 bool =? option (result u32 bool) ∧ P u32 =? result u32 bool");
+        run_with_all_priorities("P u32 bool =? option (result u32 bool) ∧ I u32 =? result u32 bool");
     }
 
     #[test]
     fn example_priority_9() {
-        run_with_all_priorities("I u32 u32 =? result u32 u32 ∧ P u32 bool =? result u32 bool");
+        run_with_all_priorities("T u32 u32 =? result u32 u32 ∧ P u32 bool =? result u32 bool");
     }
 
     #[test]
@@ -430,7 +416,7 @@ mod tests {
 
     #[test]
     fn example_priority_11() {
-        run_with_all_priorities("I u32 bool string =? result (fn2 u32 string) bool");
+        run_with_all_priorities("S u32 bool string =? result (fn2 u32 string) bool");
     }
 
     #[test]
