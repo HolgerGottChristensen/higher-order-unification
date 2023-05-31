@@ -61,6 +61,9 @@ mod tests {
     use crate::prioritization::{exhaustiveness, existence, generality, get_solution_from_solution_set, get_solution_from_solution_set_by_priorities, ordering, simplicity};
 
     const WITHOUT_SIMPLICITY: &[fn(SolutionSet) -> SolutionSet] = &[existence, generality, exhaustiveness, ordering];
+    const REVERSE_ORDER: &[fn(SolutionSet) -> SolutionSet] = &[simplicity, ordering, exhaustiveness, generality, existence];
+    const NORMAL_ORDER: &[fn(SolutionSet) -> SolutionSet] = &[existence, generality, exhaustiveness, ordering, simplicity];
+    const MIXED_ORDER: &[fn(SolutionSet) -> SolutionSet] = &[existence, ordering, exhaustiveness, simplicity, generality];
 
     fn run(input: &str) -> SolutionSet {
         // Arrange
@@ -133,6 +136,7 @@ mod tests {
     fn generate_context() -> Context {
         Context {
             typing_context: HashMap::from_iter([
+                ("b".to_string(), parse_type("*")),
                 ("u32".to_string(), parse_type("*")),
                 ("bool".to_string(), parse_type("*")),
                 ("string".to_string(), parse_type("*")),
@@ -274,6 +278,21 @@ mod tests {
     }
 
     #[test]
+    fn example_24() {
+        run("P u32 u32 =? result u32 u32 ∧ P bool bool =? result bool bool");
+    }
+
+    #[test]
+    fn example_25() {
+        run("I bool =? option u32 ∧ I u32 =? option u32 ∧ I bool =? option A");
+    }
+
+    #[test]
+    fn example_26() {
+        run("P u32 bool =? result u32 bool ∧ P bool u32 =? result bool u32");
+    }
+
+    #[test]
     fn example_priority_existence_1() {
         run_with_priority("I (L u32) =? option (option u32)", existence);
     }
@@ -365,6 +384,36 @@ mod tests {
     }
 
     #[test]
+    fn example_priority_filters_1_mixed_order() {
+        run_with_priorities("S u32 bool string =? result (fn2 u32 string) bool", MIXED_ORDER);
+    }
+
+    #[test]
+    fn example_priority_filters_1_reverse_order() {
+        run_with_priorities("S u32 bool string =? result (fn2 u32 string) bool", REVERSE_ORDER);
+    }
+
+    #[test]
+    fn example_priority_filters_1_normal_order() {
+        run_with_priorities("S u32 bool string =? result (fn2 u32 string) bool", NORMAL_ORDER);
+    }
+
+    #[test]
+    fn example_priority_filters_2_mixed_order() {
+        run_with_priorities("P u32 u32 =? fn3 u32 u32 u32", MIXED_ORDER);
+    }
+
+    #[test]
+    fn example_priority_filters_2_reverse_order() {
+        run_with_priorities("P u32 u32 =? fn3 u32 u32 u32", REVERSE_ORDER);
+    }
+
+    #[test]
+    fn example_priority_filters_2_normal_order() {
+        run_with_priorities("P u32 u32 =? fn3 u32 u32 u32", NORMAL_ORDER);
+    }
+
+    #[test]
     fn example_priority_1() {
         run_with_all_priorities("I (L u32) =? option (option u32)");
     }
@@ -422,6 +471,11 @@ mod tests {
     #[test]
     fn example_priority_12() {
         run_with_all_priorities("P u32 u32 =? result u32 u32 ∧ P bool bool =? result bool bool");
+    }
+
+    #[test]
+    fn example_priority_13() {
+        run_with_all_priorities("P (result u32 u32) u32 =? result u32 u32");
     }
 
 
